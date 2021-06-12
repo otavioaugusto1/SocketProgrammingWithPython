@@ -23,9 +23,9 @@ def main():
     servidor_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
  
     #ACEITA A CONEXÃO DO CLIENT
-    conexao, addr = server.accept()
+    
     while True:
-
+        conexao, addr = server.accept()
         print("[+]Nova conexão: {}".format(addr))
         #PEGA O VALOR PASSADO NA URL
         requisicao = conexao.recv(17400)
@@ -59,6 +59,7 @@ def main():
             servidor_client.connect((string_resultado, 80))
 
 
+
         #PEGA A REQUISIÇÃO E PASSA PARA O WWW.GOOGLE.COM DEPOIS TRANSFORMA EM STRING
         #servidor_client.sendall(('GET http://www.google.com/ HTTP/1.1\r\n' + 'Content-Type: application/x-www-form-urlencoded\r\n').encode())
         cupenis = ''
@@ -83,6 +84,8 @@ def main():
         conexao.sendall(resposta.encode())
         #resposta = b"HEAD / HTTP/1.1\r\nHost: localhost\r\nAccept: text/html\r\n\r\n"
         #conexao.sendall(resposta)
+    
+    
 
 
 
