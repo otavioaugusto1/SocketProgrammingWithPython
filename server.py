@@ -1,8 +1,5 @@
 import socket
-import sys
-import threading
-import selectors
-from typing import Sized
+
 
 ip = 'localhost'
 porta = 7777
@@ -28,7 +25,7 @@ def main():
         conexao, addr = server.accept()
         print("[+]Nova conexão: {}".format(addr))
         #PEGA O VALOR PASSADO NA URL
-        requisicao = conexao.recv(17400)
+        requisicao = conexao.recv(8192)
 
         #NOVO TRATAMENTO
         result_new = requisicao.split()
@@ -78,12 +75,13 @@ def main():
             servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
 
         #servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
-        page = servidor_client.recv(17400).decode()
+        page = servidor_client.recv(8192).decode()
         #USA O SOCKET PRINCIPAL PARA ENVIAR O HTML RECEBIDO NO PAGE
         resposta = page 
         conexao.sendall(resposta.encode())
         #resposta = b"HEAD / HTTP/1.1\r\nHost: localhost\r\nAccept: text/html\r\n\r\n"
         #conexao.sendall(resposta)
+        conexao.shutdown(1)
     
     
 
