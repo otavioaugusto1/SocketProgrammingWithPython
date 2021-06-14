@@ -20,7 +20,7 @@ def main():
     servidor_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
  
     #ACEITA A CONEXÃO DO CLIENT
-    
+    contador = 1
     while True:
         conexao, addr = server.accept()
         print("[+]Nova conexão: {}".format(addr))
@@ -53,7 +53,10 @@ def main():
                         print("Valor final", urlfinal)
                         string_resultado = urlfinal
         else:
-            servidor_client.connect((string_resultado, 80))
+            if(contador == 1):
+                servidor_client.connect((string_resultado, 80))
+            else:
+                pass
 
 
 
@@ -75,13 +78,14 @@ def main():
             servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
 
         #servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
-        page = servidor_client.recv(8192).decode()
+        page = servidor_client.recv(8192)
         #USA O SOCKET PRINCIPAL PARA ENVIAR O HTML RECEBIDO NO PAGE
         resposta = page 
-        conexao.sendall(resposta.encode())
+        conexao.sendall(resposta)
         #resposta = b"HEAD / HTTP/1.1\r\nHost: localhost\r\nAccept: text/html\r\n\r\n"
         #conexao.sendall(resposta)
         conexao.shutdown(1)
+        contador = contador + 1
     
     
 
