@@ -38,6 +38,7 @@ def main():
         resultado_split = resultado2.split('/')
         resultado22 = resultado2.split("/")[1]
         string_resultado = str(resultado22)
+        print("\n\n\n TESSTETETETETET" + str(string_resultado))
         
         
         #NOVO TRATAMENTO
@@ -76,6 +77,9 @@ def main():
             servidor_client.sendall('GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(cupenis,string_resultado).encode()) 
         else:
             servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
+
+
+        print("\n\n\n TESSTETETETETET" + str(servidor_client))
 
         #servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
         page = servidor_client.recv(8192)
