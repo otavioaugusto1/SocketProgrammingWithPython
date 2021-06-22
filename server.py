@@ -1,99 +1,136 @@
 import socket
+import sys
+import datetime
 
 
 ip = 'localhost'
-porta = 7777
-urltratada = ''
+port = 8181
 
-def client(conexao, addr):
-    print("[+]Nova conexão:", addr)
-    connected = True
+timeInCache = sys.argv[1]
+#----------------------------#
+# Cache-Control: public
+# Cache-Control: max-age=3153600
+# Cache-Control: must-revalidate
+
+
+
+
+def thread_client(conexao):
+    print("Nova conexão: ", conexao)
+
+def addParagraph(resposta, cache):
+    respostaEmString = resposta.decode()
+    indiceDoBody = respostaEmString.find("<body>")
+    novaRespostaEmString = respostaEmString[:indiceDoBody + 6] + cache + respostaEmString[indiceDoBody + 6:]
+    return novaRespostaEmString
+
+
+
 
 def main():
+
+    global cached, noCache, data
+    cached = ''
+    noCache = ''
+
+    arquivo = open("cache.txt","w")
+
+    contador = 1    
+    print("[*] Iniciando servidor")
+    
     #SOCKET PRINCIPAL
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((ip, porta))
+    server.bind((ip,port))
     server.listen(10)
-    print(f"[+]Escutando no IP:",ip, "\n[+]Porta:",porta)
 
-    #SOCKET CLIENTE QUE REQUISITA A PAGINA AO GOOGLE
-    servidor_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
- 
-    #ACEITA A CONEXÃO DO CLIENT
+    #SOCKET CLIENT
+    server_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    print("[*] Aguardando por conexões")
     contador = 1
     while True:
+        
+        
         conexao, addr = server.accept()
-        print("[+]Nova conexão: {}".format(addr))
-        #PEGA O VALOR PASSADO NA URL
-        requisicao = conexao.recv(8192)
+        request = conexao.recv(20480)
 
-        #NOVO TRATAMENTO
-        result_new = requisicao.split()
+        #PARTE DO TRATAMENTO PARA O FAVICON.ICO
+        requisicao_favicon = request.split()
+        
+        #TRATAMENTO DE URL
+        splita_espaco = request.split()[1]
+        converte_splitespaco = str(splita_espaco)
+        splita_aspas = converte_splitespaco.split("'")[1]
+        converte_splitaspas = str(splita_aspas)
+        splita_barra = converte_splitaspas.split('/')
+        enderecopassado = converte_splitaspas.split("/")[1]
+        str_dominio = str(enderecopassado)
+        
 
-        #FAZ O TRATAMENTO DA URL PARA PEGAR O VALOR PASSADO E TRANSFORMA EM STRING
-        resultado = requisicao.split()[1]
-        resultado = str(resultado)
-        resultado2 = resultado.split("'")[1]
-        resultado2 = str(resultado2)
-        resultado_split = resultado2.split('/')
-        resultado22 = resultado2.split("/")[1]
-        string_resultado = str(resultado22)
-        print("\n\n\n TESSTETETETETET" + str(string_resultado))
-        
-        
-        #NOVO TRATAMENTO
-        if(string_resultado == 'favicon.ico'):
-            for i in result_new:
+        #Verificação Favicon.ico
+        if(str_dominio == "favicon.ico"):
+            for i in requisicao_favicon:
                 if len(i) > 5:
                     if((i[3:]).decode() == "p://localhost:7777/www.example.org"):
-                        print("Achado")
                         guardavalor = (i[3:]).decode()
-                        print("Valor achado:{}".format(guardavalor))
                         splita_valor = guardavalor.split("/")
                         urlfinal = splita_valor[3]
-                        print("Valor final", urlfinal)
-                        string_resultado = urlfinal
+                        str_dominio = urlfinal
+                        server_client.connect((str_dominio, 80))
         else:
-            if(contador == 1):
-                servidor_client.connect((string_resultado, 80))
-            else:
+            try:
+                server_client.connect((str_dominio, 80))
+            except:
                 pass
-
-
-
-        #PEGA A REQUISIÇÃO E PASSA PARA O WWW.GOOGLE.COM DEPOIS TRANSFORMA EM STRING
-        #servidor_client.sendall(('GET http://www.google.com/ HTTP/1.1\r\n' + 'Content-Type: application/x-www-form-urlencoded\r\n').encode())
-        cupenis = ''
-        if(len(resultado_split) == 3):
-            temp = resultado_split[2]
-            temp2 = temp + '/' + resultado_split[3]
-            servidor_client.sendall('GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(temp2,string_resultado).encode()) 
-        elif(len(resultado_split) >= 4):
-            for i in range(2, len(resultado_split)):
-                if(i == len(resultado_split) - 1):
-                    cupenis += resultado_split[i]
+        
+        caminhoConcatenado = ''
+        if(len(splita_barra) == 3):
+            temp = splita_barra[2]
+            temp2 = temp + '/' + splita_barra[3]
+            server_client.send('GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(temp2,str_dominio).encode()) 
+        elif(len(splita_barra) >= 4):
+            for i in range(2, len(splita_barra)):
+                if(i == len(splita_barra) - 1):
+                    caminhoConcatenado += splita_barra[i]
                 else:
-                    cupenis += resultado_split[i] + '/'
-            servidor_client.sendall('GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(cupenis,string_resultado).encode()) 
+                    caminhoConcatenado += splita_barra[i] + '/'
+            server_client.send('GET /{} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(caminhoConcatenado,str_dominio).encode()) 
         else:
-            servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
+            server_client.send('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(str_dominio).encode()) 
 
+        page = server_client.recv(20480)
+        resposta = page
+        
+        data = datetime.datetime.now()
+        
+        try:
+            arquivo.write(resposta.decode())
+        except:
+            pass
 
-        print("\n\n\n TESSTETETETETET" + str(servidor_client))
+        if contador != 1:
+            print("está em cache")
+            cached = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Cache: {}</p>'.format(data)
+            novaRespostaComCache = addParagraph(resposta,cached)
+            conexao.sendall(novaRespostaComCache.encode())
 
-        #servidor_client.sendall('GET / HTTP/1.1\r\nHost: {}\r\n\r\n'.format(string_resultado).encode()) 
-        page = servidor_client.recv(8192)
-        #USA O SOCKET PRINCIPAL PARA ENVIAR O HTML RECEBIDO NO PAGE
-        resposta = page 
-        conexao.sendall(resposta)
-        #resposta = b"HEAD / HTTP/1.1\r\nHost: localhost\r\nAccept: text/html\r\n\r\n"
-        #conexao.sendall(resposta)
-        conexao.shutdown(1)
-        contador = contador + 1
-    
-    
-
-
-
-if __name__ == "__main__":
-    main()
+        else:
+            print("Primeira vez")
+            noCache = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Nova em: {}</p>'.format(data)
+            # "resposta" está em formato de bytes
+            novaRespostaSemCache = addParagraph(resposta,noCache)
+            conexao.sendall(novaRespostaSemCache.encode())
+        
+        thread_client(conexao)
+        conexao.shutdown(socket.SHUT_RD)
+        #ou 
+        #conexao.shutdown()
+        try:
+            arquivo.close() 
+        except:
+            pass
+        
+        contador += 1 
+        
+        
+main()
