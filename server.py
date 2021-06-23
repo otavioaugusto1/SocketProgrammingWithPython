@@ -19,6 +19,7 @@ def thread_client(conexao):
     print("Nova conexão: ", conexao)
 
 def addParagraph(resposta, cache):
+    respostaEmString = ''
     respostaEmString = resposta.decode()
     indiceDoBody = respostaEmString.find("<body>")
     novaRespostaEmString = respostaEmString[:indiceDoBody + 6] + cache + respostaEmString[indiceDoBody + 6:]
@@ -113,7 +114,6 @@ def main():
             cached = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Cache: {}</p>'.format(data)
             novaRespostaComCache = addParagraph(resposta,cached)
             conexao.sendall(novaRespostaComCache.encode())
-
         else:
             print("Primeira vez")
             noCache = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Nova em: {}</p>'.format(data)
@@ -122,15 +122,15 @@ def main():
             conexao.sendall(novaRespostaSemCache.encode())
         
         thread_client(conexao)
-        conexao.shutdown(socket.SHUT_RD)
+        #conexao.close()
         #ou 
         #conexao.shutdown()
         try:
-            arquivo.close() 
+            conexao.shutdown() 
         except:
             pass
         
         contador += 1 
-        
+   
         
 main()
