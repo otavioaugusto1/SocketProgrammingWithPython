@@ -20,14 +20,15 @@ def thread_client(conexao):
 
 
 def addParagraph(resposta, cache):
-    return resposta
-    #se for true, eu posso add o  POCHIT ''
-    # retur resposta, caso contrário
-    respostaEmString = resposta.decode()
-    indiceDoBody = respostaEmString.find("<body>")
-    novaRespostaEmString = respostaEmString[:indiceDoBody + 6] + cache + respostaEmString[indiceDoBody + 6:]
-    return novaRespostaEmString
-
+    #se for true, eu posso add o  POST-IT 
+    # return resposta, caso contrário pois não posso add post-it a algo que não é html
+    if resposta.find(b'html'):
+        respostaEmString = resposta.decode()
+        indiceDoBody = respostaEmString.find("<body>")
+        novaRespostaEmString = respostaEmString[:indiceDoBody + 6] + cache + respostaEmString[indiceDoBody + 6:]
+        return novaRespostaEmString
+    else:
+        return resposta
 
 def main():
 
@@ -123,13 +124,13 @@ def main():
             print("está em cache")
             cached = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Cache: {}</p>'.format(data)
             novaRespostaComCache = addParagraph(resposta,cached)
-            conexao.sendall(novaRespostaComCache)
+            conexao.sendall(novaRespostaComCache.encode())
         else:
             print("Primeira vez")
             noCache = '\n<p style="z-index:9999; position:fixed; top:20px; left:20px;width:200px;height:100px; background-color:yellow;padding:10px; font-weight:bold;">Nova em: {}</p>'.format(data)
             # "resposta" está em formato de bytes
             novaRespostaSemCache = addParagraph(resposta,noCache)
-            conexao.sendall(novaRespostaSemCache)
+            conexao.sendall(novaRespostaSemCache.encode())
         
         thread_client(conexao)
         #conexao.close()
