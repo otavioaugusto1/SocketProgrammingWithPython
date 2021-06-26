@@ -30,6 +30,7 @@ def threaded(c,s,port,server_client):
   
     # connection closed
     c.close()
+    #s.close()
   
 def sendToClient(data,c,s,port,server_client):
     requisicao_favicon = data.split()
@@ -83,7 +84,7 @@ def main():
   
         # establish connection with client
         c, addr = s.accept()
-  
+        
         # lock acquired by client
         print_lock.acquire()
         print('Connected to :', addr[0], ':', addr[1])
