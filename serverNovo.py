@@ -57,7 +57,7 @@ def ler_cache(str_dominio,imag_str):
 def conexao_browser(str_dominio, url_Complexa_Divisao, urlTratamento, conexao, addr,imag_str):
    
     teste_tamanho_url = (len(url_Complexa_Divisao))
-
+    #www.example.org
     if teste_tamanho_url != 0:
         for count in range (len(url_Complexa_Divisao)-1):
             concatenar_url_complex = url_Complexa_Divisao[count]+'/'+url_Complexa_Divisao[count+1]
